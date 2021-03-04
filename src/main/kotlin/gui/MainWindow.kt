@@ -89,8 +89,8 @@ class MainWindow(private var a: Graph) : JFrame() {
 
         addComponentListener(object : ComponentAdapter(){
             override fun componentResized(e: ComponentEvent?) {
-                plane.width = width
-                plane.height = height
+                plane.width = graphicsPanel.width
+                plane.height = graphicsPanel.height
                 graphicsPanel.repaint()
             }
         })

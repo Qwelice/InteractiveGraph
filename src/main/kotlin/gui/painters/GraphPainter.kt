@@ -24,15 +24,17 @@ class GraphPainter(private val plane: ConvertPlane) : Painter() {
                     dy = Converter.yCrt2Scr(v.y, plane)
                     for(i in v.incidents.keys){
                         val p = graph!!.vertices[i]
-                        if(p.onScreen){
+                        if(p.onScreen && v.incidents[i]!![1] == 0.0){
                             val px = Converter.xCrt2Scr(p.x, plane)
                             val py = Converter.yCrt2Scr(p.y, plane)
-                            when(v.incidents[i]!!){
+                            when(v.incidents[i]!![0]){
                                 in (0.0)..(5.9) -> g.color = Color.GREEN
                                 in (6.0)..(8.9) -> g.color = Color.YELLOW
                                 else -> g.color = Color.RED
                             }
                             g.drawLine(dx, dy, px, py)
+                            v.incidents[i]!![1] = 0.0
+                            graph!!.vertices[i].incidents[v.id]!![1] = 1.0
                         }
                     }
                     g.color = v.color
