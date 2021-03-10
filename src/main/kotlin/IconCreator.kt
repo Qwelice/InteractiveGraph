@@ -4,14 +4,18 @@ import javax.swing.ImageIcon
 
 object IconCreator {
     fun create(v: Graph.Vertex) : ImageIcon = ImageIcon(BufferedImage(32, 32, BufferedImage.TYPE_INT_RGB).apply {
-        val g2D = graphics as Graphics2D
-        g2D.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON)
-        g2D.color = Color.WHITE
-        g2D.fillRect(0, 0, width, height)
-        g2D.color = v.color
-        g2D.fillOval(0, 0, 31, 31)
-        g2D.setXORMode(Color.WHITE)
-        g2D.font = Font("TimesRoman", Font.PLAIN, 16)
-        g2D.drawString(v.id.toString(), 11, 21)
+        val g2d = graphics as Graphics2D
+        g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON)
+        g2d.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY)
+        g2d.color = Color.WHITE
+        g2d.fillRect(0, 0, width, height)
+        g2d.color = v.color
+        g2d.fillOval(0, 0, 31, 31)
+        g2d.setXORMode(Color.WHITE)
+        g2d.font = Font("TimesRoman", Font.PLAIN, 16)
+        when(v.id){
+            in 0..9 -> g2d.drawString(v.id.toString(), 11, 22)
+            else -> g2d.drawString(v.id.toString(), 7, 22)
+        }
     })
 }

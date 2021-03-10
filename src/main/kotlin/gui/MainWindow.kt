@@ -8,19 +8,16 @@ import util.Converter
 import java.awt.Color
 import java.awt.ComponentOrientation
 import java.awt.Dimension
-import java.awt.event.ComponentAdapter
-import java.awt.event.ComponentEvent
-import java.awt.event.MouseEvent
-import java.awt.event.MouseListener
+import java.awt.event.*
 import javax.swing.*
 import javax.swing.border.EtchedBorder
 
 class MainWindow(private var a: Graph) : JFrame() {
-    private val minFrameSize = Dimension(500, 500)
+    private val minFrameSize = Dimension(600, 580)
     private val graphicsPanel = GraphicsPanel()
     private val dlm = DefaultListModel<ImageIcon>()
-    private val images = JList(dlm)
-    private val pane = JScrollPane(images)
+    private val images = JList(dlm).apply { isFocusable = false }
+    private val pane = JScrollPane(images).apply { isFocusable = false }
     private val plane: ConvertPlane
     private val painter: GraphPainter
 
@@ -56,15 +53,47 @@ class MainWindow(private var a: Graph) : JFrame() {
         painter = GraphPainter(plane)
         graphicsPanel.addPainter(painter)
         painter.graph = a
+
+        addKeyListener(object : KeyListener{
+            override fun keyTyped(e: KeyEvent?) {
+
+            }
+
+            override fun keyPressed(e: KeyEvent?) {
+                if(e != null && e.keyCode == KeyEvent.VK_F){
+                    painter.graph!!.centerVertices(plane)
+                    graphicsPanel.repaint()
+                }
+            }
+
+            override fun keyReleased(e: KeyEvent?) {
+
+            }
+
+        })
         graphicsPanel.addMouseListener(object : MouseListener{
             override fun mouseClicked(e: MouseEvent?) {
-                if(!images.isSelectionEmpty && e != null && e.button == MouseEvent.BUTTON1){
+                if(e != null){
                     val px = Converter.xScr2Crt(e.x, plane)
                     val py = Converter.yScr2Crt(e.y, plane)
-                    a.vertices[images.selectedIndex].apply {
-                        changeLocation(px, py)
-                        onScreen = true
+                    if(e.button == MouseEvent.BUTTON3 && painter.graph != null){
+                        when(val i = painter.graph!!.isInVertices(px, py)){
+                            in painter.graph!!.vertices.indices -> painter.graph!!.vertices[i].onScreen = false
+                            else -> { }
+                        }
                         graphicsPanel.repaint()
+                    }
+                    if(e.button == MouseEvent.BUTTON1){
+                        when(val i = painter.graph!!.isInVertices(px, py)){
+                            in painter.graph!!.vertices.indices -> images.selectedIndex = i
+                            else ->{
+                                a.vertices[images.selectedIndex].apply {
+                                    changeLocation(px, py)
+                                    onScreen = true
+                                    graphicsPanel.repaint()
+                                }
+                            }
+                        }
                     }
                 }
             }
@@ -83,6 +112,29 @@ class MainWindow(private var a: Graph) : JFrame() {
 
             override fun mouseExited(e: MouseEvent?) {
 
+            }
+
+        })
+        graphicsPanel.addMouseMotionListener(object : MouseMotionListener{
+            override fun mouseDragged(e: MouseEvent?) {
+                if(e != null){
+                    val px = Converter.xScr2Crt(e.x, plane)
+                    val py = Converter.yScr2Crt(e.y, plane)
+                    if(e.button == MouseEvent.BUTTON1 && painter.graph != null){
+                        when(val i = painter.graph!!.isInVertices(px, py)){
+                            in painter.graph!!.vertices.indices -> painter.graph!!.vertices[i].changeLocation(px, py)
+                            else -> { }
+                        }
+                        graphicsPanel.repaint()
+                    }
+                }
+            }
+
+            override fun mouseMoved(e: MouseEvent?) {
+                if(e != null){
+                    painter.updatePosition(e.x, e.y)
+                    graphicsPanel.repaint()
+                }
             }
 
         })

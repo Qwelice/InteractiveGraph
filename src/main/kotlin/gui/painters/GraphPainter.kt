@@ -3,48 +3,101 @@ package gui.painters
 import Graph
 import util.ConvertPlane
 import util.Converter
-import java.awt.Color
-import java.awt.Font
-import java.awt.Graphics
+import java.awt.*
+import java.awt.geom.AffineTransform
+import kotlin.math.atan
+import kotlin.math.max
 
 class GraphPainter(private val plane: ConvertPlane) : Painter() {
     var graph : Graph? = null
+    var mousePos : Point = Point(0, 0)
     override fun draw(g: Graphics) {
         drawVertices(g)
     }
 
     private fun drawVertices(g: Graphics){
         if(graph != null){
-            for(v in graph!!.vertices){
-                var dx: Int
-                var dy: Int
-                g.setPaintMode()
+            var dx : Int
+            var dy : Int
+            val g2d = g as Graphics2D
+            g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON)
+            g2d.stroke = BasicStroke(2.0f)
+            for(i in 0 until graph!!.vertices.size ){
+                val v : Graph.Vertex= graph!!.vertices[i]
                 if(v.onScreen){
                     dx = Converter.xCrt2Scr(v.x, plane)
                     dy = Converter.yCrt2Scr(v.y, plane)
-                    for(i in v.incidents.keys){
-                        val p = graph!!.vertices[i]
-                        if(p.onScreen && v.incidents[i]!![1] == 0.0){
-                            val px = Converter.xCrt2Scr(p.x, plane)
-                            val py = Converter.yCrt2Scr(p.y, plane)
-                            when(v.incidents[i]!![0]){
-                                in (0.0)..(5.9) -> g.color = Color.GREEN
-                                in (6.0)..(8.9) -> g.color = Color.YELLOW
-                                else -> g.color = Color.RED
+                    g2d.setPaintMode()
+                    for(j in i until graph!!.vertices.size){
+                        if(v.isIncidents(j) && graph!!.vertices[j].onScreen) {
+                            val avg = graph!!.vertices.let {
+                                val maxAvg = mutableListOf<Double>()
+                                it.forEach { that ->
+                                    maxAvg.add(that.incidents.values.minOrNull()!!)
+                                }
+                                maxAvg.maxOrNull()!!
                             }
-                            g.drawLine(dx, dy, px, py)
-                            v.incidents[i]!![1] = 0.0
-                            graph!!.vertices[i].incidents[v.id]!![1] = 1.0
+                            g2d.color = when(v.incidents[j]!!){
+                                in (0.0)..(avg) -> Color.GREEN
+                                in (avg + 0.1)..(1.5 * avg) -> Color.YELLOW
+                                else -> Color.RED
+                            }
+                            drawEdge(g2d, v.x, v.y, graph!!.vertices[j].x, graph!!.vertices[j].y)
                         }
                     }
-                    g.color = v.color
-                    g.fillOval(dx - 16, dy - 16, 32, 32)
-                    g.setXORMode(Color.WHITE)
-                    g.font = Font("TimesRoman", Font.PLAIN, 16)
-                    g.drawString(v.id.toString(), dx -16 + 11, dy - 16 + 21)
+                    g2d.color = v.color
+                    g2d.fillOval(dx - 16, dy - 16, 32, 32)
+                    if(v.isInVertex(Converter.xScr2Crt(mousePos.x, plane), Converter.yScr2Crt(mousePos.y, plane))){
+                        g2d.color = Color.CYAN
+                        g2d.drawOval(dx - 16, dy - 16, 32, 32)
+                    }
+                    else{
+                        g2d.color = Color.GRAY
+                        g2d.drawOval(dx - 16, dy - 16, 32, 32)
+                    }
+                    g2d.color = v.color
+                    g2d.setXORMode(Color.WHITE)
+                    g2d.font = Font("TimesRoman", Font.PLAIN, 16)
+                    when(v.id){
+                        in 0..9 -> g2d.drawString(v.id.toString(), dx - 16 + 11, dy - 16 + 22)
+                        else -> g2d.drawString(v.id.toString(), dx - 16 + 7, dy - 16 + 22)
+                    }
+                    g2d.setPaintMode()
+                    for(j in i until graph!!.vertices.size){
+                        if(v.isIncidents(j) && graph!!.vertices[j].onScreen) {
+                            drawNumbers(g2d, v.x, v.y, graph!!.vertices[j].x, graph!!.vertices[j].y, v.incidents[j]!!)
+                        }
+                    }
                 }
             }
         }
+    }
+
+    private fun drawNumbers(g: Graphics2D, x1: Double, y1: Double, x2: Double, y2: Double, w: Double){
+        val g2d = g.create() as Graphics2D
+        g2d.font = Font("TimesRoman", Font.PLAIN, 14)
+        g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON)
+        val x = (x1 + x2) / 2
+        val y = (y1 + y2) / 2
+        val alpha = atan(((x1 - x2) / 2) / ((y1 - y2) / 2))
+        g2d.rotate(alpha - Math.PI / 2 + Math.PI, Converter.xCrt2Scr(x, plane).toDouble(), Converter.yCrt2Scr(y, plane).toDouble())
+        g2d.color = Color.BLUE
+        g2d.setXORMode(Color.WHITE)
+        g2d.drawString(w.toString(), Converter.xCrt2Scr(x, plane),
+            Converter.yCrt2Scr(y, plane) - 3)
+        g2d.setPaintMode()
+    }
+
+    private fun drawEdge(g: Graphics, x1: Double, y1: Double, x2: Double, y2: Double){
+        val g2d = g as Graphics2D
+        g2d.stroke = BasicStroke(2f)
+        g2d.drawLine(Converter.xCrt2Scr(x1, plane), Converter.yCrt2Scr(y1, plane),
+            Converter.xCrt2Scr(x2, plane), Converter.yCrt2Scr(y2, plane))
+    }
+
+    fun updatePosition(x: Int, y: Int){
+        mousePos.x = x
+        mousePos.y = y
     }
 
     override fun update(w: Int, h: Int) {
