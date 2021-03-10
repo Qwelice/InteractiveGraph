@@ -13,7 +13,7 @@ import javax.swing.*
 import javax.swing.border.EtchedBorder
 
 class MainWindow(private var a: Graph) : JFrame() {
-    private val minFrameSize = Dimension(600, 580)
+    private val minFrameSize = Dimension(600, 720)
     private val graphicsPanel = GraphicsPanel()
     private val dlm = DefaultListModel<ImageIcon>()
     private val images = JList(dlm).apply { isFocusable = false }
