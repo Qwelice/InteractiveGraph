@@ -12,10 +12,10 @@ object IconCreator {
         g2d.color = v.color
         g2d.fillOval(0, 0, 31, 31)
         g2d.setXORMode(Color.WHITE)
-        g2d.font = Font("TimesRoman", Font.PLAIN, 16)
+        g2d.font = Font("Cambria", Font.PLAIN, 16)
         when(v.id){
-            in 0..9 -> g2d.drawString(v.id.toString(), 11, 22)
-            else -> g2d.drawString(v.id.toString(), 7, 22)
+            in 0..8 -> g2d.drawString((v.id + 1).toString(), 11, 22)
+            else -> g2d.drawString((v.id + 1).toString(), 7, 22)
         }
     })
 }

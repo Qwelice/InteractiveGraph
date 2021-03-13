@@ -4,9 +4,7 @@ import Graph
 import util.ConvertPlane
 import util.Converter
 import java.awt.*
-import java.awt.geom.AffineTransform
 import kotlin.math.atan
-import kotlin.math.max
 
 class GraphPainter(private val plane: ConvertPlane) : Painter() {
     var graph : Graph? = null
@@ -59,8 +57,8 @@ class GraphPainter(private val plane: ConvertPlane) : Painter() {
                     g2d.setXORMode(Color.WHITE)
                     g2d.font = Font("TimesRoman", Font.PLAIN, 16)
                     when(v.id){
-                        in 0..9 -> g2d.drawString(v.id.toString(), dx - 16 + 11, dy - 16 + 22)
-                        else -> g2d.drawString(v.id.toString(), dx - 16 + 7, dy - 16 + 22)
+                        in 0..8 -> g2d.drawString((v.id + 1).toString(), dx - 16 + 11, dy - 16 + 22)
+                        else -> g2d.drawString((v.id + 1).toString(), dx - 16 + 7, dy - 16 + 22)
                     }
                     g2d.setPaintMode()
                     for(j in i until graph!!.vertices.size){
@@ -74,18 +72,20 @@ class GraphPainter(private val plane: ConvertPlane) : Painter() {
     }
 
     private fun drawNumbers(g: Graphics2D, x1: Double, y1: Double, x2: Double, y2: Double, w: Double){
-        val g2d = g.create() as Graphics2D
-        g2d.font = Font("TimesRoman", Font.PLAIN, 14)
-        g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON)
+        g.font = Font("Cambria", Font.PLAIN, 14)
+        g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON)
         val x = (x1 + x2) / 2
         val y = (y1 + y2) / 2
         val alpha = atan(((x1 - x2) / 2) / ((y1 - y2) / 2))
-        g2d.rotate(alpha - Math.PI / 2 + Math.PI, Converter.xCrt2Scr(x, plane).toDouble(), Converter.yCrt2Scr(y, plane).toDouble())
-        g2d.color = Color.BLUE
-        g2d.setXORMode(Color.WHITE)
-        g2d.drawString(w.toString(), Converter.xCrt2Scr(x, plane),
+        g.rotate(alpha - Math.PI / 2 + Math.PI,
+            Converter.xCrt2Scr(x, plane).toDouble(), Converter.yCrt2Scr(y, plane).toDouble())
+        g.color = Color.BLUE
+        g.setXORMode(Color.WHITE)
+        g.drawString(w.toString(), Converter.xCrt2Scr(x, plane),
             Converter.yCrt2Scr(y, plane) - 3)
-        g2d.setPaintMode()
+        g.setPaintMode()
+        g.rotate(-(alpha - Math.PI / 2 + Math.PI),
+            Converter.xCrt2Scr(x, plane).toDouble(), Converter.yCrt2Scr(y, plane).toDouble())
     }
 
     private fun drawEdge(g: Graphics, x1: Double, y1: Double, x2: Double, y2: Double){
